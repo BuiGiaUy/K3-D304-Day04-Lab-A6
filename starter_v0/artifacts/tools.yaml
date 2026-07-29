@@ -9,12 +9,12 @@
 tools:
   # ---------------- Core tools ----------------
   - name: clarify
-    description: "Gửi một câu hỏi cho người dùng."
+    description: "Hỏi lại người dùng và tạm dừng cho tới lượt sau. Dùng khi thiếu thông tin bắt buộc, hoặc khi cần xác nhận trước một hành động không hoàn tác được."
     parameters:
       type: object
       properties:
         question: {type: string, default: "", description: "Câu hỏi"}
-        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "Kiểu trả lời"}
+        response_type: {type: string, enum: [text, yes_no, choice], default: "text", description: "Dùng yes_no khi xin XÁC NHẬN trước hành động không hoàn tác (gửi, đăng, publish). Dùng text khi cần người dùng cung cấp thông tin còn thiếu (tên tài khoản, URL, danh sách). Dùng choice khi đưa sẵn các lựa chọn."}
         options: {type: array, default: [], items: {type: string}, description: "Các lựa chọn"}
       required: [question]
 
@@ -28,23 +28,23 @@ tools:
       required: [screenname]
 
   - name: social_search
-    description: "Tìm trên mạng xã hội."
+    description: "Tìm bài đăng mạng xã hội theo CHỦ ĐỀ (mọi người đang nói gì về X). Khác timeline vốn lấy bài CỦA một tài khoản cụ thể."
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Từ khóa"}
-        search_type: {type: string, enum: [Latest, Top], default: "Latest", description: "Cách sắp xếp"}
+        query: {type: string, default: "", description: "CHỈ đặt từ khoá chủ đề, ví dụ \"AI\", \"GPT-5\". Không thêm các từ như tweet, bài đăng, mới nhất, hôm nay — đó là việc của search_type."}
+        search_type: {type: string, enum: [Latest, Top], default: "Latest", description: "Top khi người dùng hỏi bài nổi bật / được chia sẻ nhiều nhất / phổ biến nhất. Latest khi hỏi bài mới nhất hoặc không nói rõ."}
         limit: {type: integer, default: 5, description: "Số lượng"}
       required: [query]
 
   - name: lookup
-    description: "Tra cứu thông tin trên internet."
+    description: "Tìm thông tin trên web. Dùng khi cần tra cứu hoặc tìm tin tức mà chưa có URL cụ thể."
     parameters:
       type: object
       properties:
-        query: {type: string, default: "", description: "Truy vấn"}
-        topic: {type: string, enum: [general, news], default: "general", description: "Phân loại"}
-        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "Khoảng thời gian"}
+        query: {type: string, default: "", description: "CHỈ đặt từ khoá chủ đề, ví dụ \"AI\", \"robotics\". TUYỆT ĐỐI không thêm các từ như news, tin tức, hôm nay, today, mới nhất vào đây — loại nội dung đã có topic và mốc thời gian đã có timeframe."}
+        topic: {type: string, enum: [general, news], default: "general", description: "Đặt news khi người dùng hỏi tin tức / thời sự / có gì mới. Đặt general khi tra cứu kiến thức hoặc thông tin không theo thời điểm."}
+        timeframe: {type: string, enum: [day, week, month, year], default: "week", description: "hôm nay/hiện tại → day; tuần này → week; tháng này → month; năm nay → year. Ở hội thoại nhiều lượt, giữ nguyên mốc thời gian của lượt trước nếu người dùng nói \"vẫn khoảng thời gian đó\"."}
         max_results: {type: integer, default: 5, description: "Số kết quả"}
       required: [query]
 
@@ -76,6 +76,26 @@ tools:
         template: {type: string, enum: [brief, sections, bullets, thread, daily_ai_vn], default: "sections", description: "Khuôn"}
         headline: {type: string, default: "", description: "Tiêu đề"}
       required: [items, template]
+
+  - name: dedupe
+    description: "Gộp danh sách item đã có sẵn và loại bỏ các item trùng lặp. Dùng khi người dùng đã đưa sẵn danh sách, hoặc khi kết quả đến từ nhiều nguồn khác nhau và cần một danh sách sạch trước khi trình bày. KHÔNG dùng để đi tìm kiếm hay lấy dữ liệu mới — tool này chỉ xử lý item đã có trong hội thoại."
+    parameters:
+      type: object
+      properties:
+        items:
+          type: array
+          default: []
+          description: "Danh sách item cần lọc trùng"
+          items:
+            type: object
+            properties:
+              title: {type: string}
+              url: {type: string}
+              source: {type: string}
+              summary: {type: string}
+        key: {type: string, enum: [url, title, both], default: "url", description: "So trùng theo URL đã chuẩn hoá, theo tiêu đề đã bỏ dấu, hoặc phải trùng cả hai"}
+        max_items: {type: integer, default: 20, description: "Số item tối đa giữ lại"}
+      required: [items]
 
   # ---------------- Bonus tools ----------------
   - name: send

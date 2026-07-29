@@ -4,7 +4,7 @@ import json
 import os
 from typing import Any
 
-from providers.base import ModelResponse, ToolCall
+from providers.base import ModelResponse, RequestPacer, ToolCall
 
 
 def _to_gemini_declarations(tools: list[dict[str, Any]] | None) -> list[dict[str, Any]]:
@@ -77,6 +77,14 @@ class GeminiProvider:
     ) -> None:
         self.api_key_env = api_key_env
         self.default_model = default_model
+        # Free tier giới hạn cả số request mỗi phút lẫn mỗi ngày. RequestPacer giãn
+        # cách và lùi dần ở loại theo phút, nhưng thoát ngay ở loại theo ngày —
+        # quota ngày chỉ reset vào đầu ngày nên chờ là lãng phí.
+        self.pacer = RequestPacer(
+            interval_env="GEMINI_MIN_REQUEST_INTERVAL",
+            retries_env="GEMINI_MAX_RETRIES",
+            default_interval=4.0,
+        )
 
     def complete(
         self,
@@ -104,13 +112,23 @@ class GeminiProvider:
             config_kwargs["system_instruction"] = system_instruction
         if declarations:
             config_kwargs["tools"] = [types.Tool(function_declarations=declarations)]
+            # run_eval.py passes tool_choice="required" to force a tool call, the same
+            # way OpenAIProvider and AnthropicProvider do. Gemini expresses that as
+            # function calling mode ANY. Without it, forced cases grade as
+            # missing_tool_call whenever the model answers with text instead.
+            if tool_choice == "required":
+                config_kwargs["tool_config"] = types.ToolConfig(
+                    function_calling_config=types.FunctionCallingConfig(
+                        mode=types.FunctionCallingConfigMode.ANY
+                    )
+                )
 
         client = genai.Client(api_key=api_key)
-        resp = client.models.generate_content(
+        resp = self.pacer.run(lambda: client.models.generate_content(
             model=model or self.default_model,
             contents=contents,
             config=types.GenerateContentConfig(**config_kwargs),
-        )
+        ))
 
         text_parts: list[str] = []
         calls: list[ToolCall] = []

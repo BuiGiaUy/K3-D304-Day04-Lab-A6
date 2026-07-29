@@ -4,7 +4,7 @@ import json
 import os
 from typing import Any
 
-from providers.base import ModelResponse, ToolCall
+from providers.base import EmptyResponseError, ModelResponse, RequestPacer, ToolCall
 
 
 class OpenAIProvider:
@@ -20,6 +20,12 @@ class OpenAIProvider:
         self.api_key_env = api_key_env
         self.base_url = base_url
         self.default_model = default_model
+        # Model :free của OpenRouter bị giới hạn số request mỗi phút. Đặt
+        # OPENAI_MIN_REQUEST_INTERVAL=4 (hoặc cao hơn) để giãn cách khi chạy eval.
+        self.pacer = RequestPacer(
+            interval_env="OPENAI_MIN_REQUEST_INTERVAL",
+            retries_env="OPENAI_MAX_RETRIES",
+        )
 
     def complete(
         self,
@@ -50,7 +56,14 @@ class OpenAIProvider:
         if tool_choice is not None:
             kwargs["tool_choice"] = tool_choice
 
-        resp = client.chat.completions.create(**kwargs)
+        def create() -> Any:
+            response = client.chat.completions.create(**kwargs)
+            if not getattr(response, "choices", None):
+                detail = getattr(response, "error", None) or response
+                raise EmptyResponseError(f"Response không có choices: {detail}")
+            return response
+
+        resp = self.pacer.run(create)
         msg = resp.choices[0].message
         calls: list[ToolCall] = []
         for call in msg.tool_calls or []:

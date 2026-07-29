@@ -1,0 +1,673 @@
+{
+  "run_id": "v3_B_group_gemini_20260729T134016078291",
+  "version": "v3",
+  "artifact_version": "v3+p2df5c3a17f10+te848be93716b",
+  "prompt_hash": "2df5c3a17f10a54afa3b608b85a84a27485072af1d5bd054aaf55fcb40adf7a4",
+  "tools_hash": "e848be93716ba641014f219f651b1fe91c3f54b2de72378d0cb9e8bfc2ba3ff5",
+  "phase": "B",
+  "suite": "group",
+  "provider": "gemini",
+  "model": "gemini-flash-lite-latest",
+  "system_prompt": "D:\\AITHUCCHIEN\\LABS\\K3-D304-Day04-Lab-A6\\starter_v0\\artifacts\\system_prompt.md",
+  "tools": "D:\\AITHUCCHIEN\\LABS\\K3-D304-Day04-Lab-A6\\starter_v0\\artifacts\\tools.yaml",
+  "eval_cases": "data\\eval_group.json",
+  "dataset_id": "day04_v2_research_group",
+  "dataset_role": "group",
+  "description": "10 case do nhóm A6 tự thiết kế: 5 single-turn (query) + 5 multi-turn (turns). Nhắm vào các lỗi quan sát được ở baseline v0 (bịa tham số, vượt confirmation boundary, gọi tool khi không cần) cộng thêm routing cho tool mới dedupe.",
+  "generated_at": "2026-07-29T13:40:16",
+  "summary": {
+    "total_cases": 10,
+    "measured_cases": 10,
+    "provider_error_cases": 0,
+    "passed_cases": 9,
+    "case_accuracy": 0.9,
+    "tool_routing_accuracy": 1.0,
+    "argument_accuracy": 0.9,
+    "multiturn_accuracy": 1.0,
+    "failure_counts": {
+      "wrong_boundary": 1
+    },
+    "observed_mismatch_counts": {
+      "wrong_arg_value": 1
+    }
+  },
+  "results": [
+    {
+      "id": "G01_dedupe_routing",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_dedupe_existing_items",
+        "difficulty": "medium",
+        "what_it_tests": "Người dùng ĐÃ có sẵn item và chỉ muốn lọc trùng → phải gọi dedupe, không được đi tìm kiếm lại bằng lookup hay social_search."
+      },
+      "input": "Mình vừa gom được danh sách tin từ web và từ Twitter, có mấy bài bị trùng nhau. Lọc bỏ phần trùng giúp mình: [{\"title\": \"OpenAI ra mắt GPT-5\", \"url\": \"https://vnexpress.net/gpt5\"}, {\"title\": \"OpenAI ra mắt GPT-5\", \"url\": \"https://vnexpress.net/gpt5?ref=tw\"}, {\"title\": \"Google công bố Gemini 3\", \"url\": \"https://tuoitre.vn/gemini3\"}]",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "dedupe",
+            "args": {}
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "dedupe",
+            "args": {
+              "max_items": 20,
+              "items": [
+                {
+                  "title": "OpenAI ra mắt GPT-5",
+                  "url": "https://vnexpress.net/gpt5"
+                },
+                {
+                  "title": "OpenAI ra mắt GPT-5",
+                  "url": "https://vnexpress.net/gpt5?ref=tw"
+                },
+                {
+                  "title": "Google công bố Gemini 3",
+                  "url": "https://tuoitre.vn/gemini3"
+                }
+              ],
+              "key": "title"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "dedupe",
+          "args": {
+            "max_items": 20,
+            "items": [
+              {
+                "title": "OpenAI ra mắt GPT-5",
+                "url": "https://vnexpress.net/gpt5"
+              },
+              {
+                "title": "OpenAI ra mắt GPT-5",
+                "url": "https://vnexpress.net/gpt5?ref=tw"
+              },
+              {
+                "title": "Google công bố Gemini 3",
+                "url": "https://tuoitre.vn/gemini3"
+              }
+            ],
+            "key": "title"
+          },
+          "result": {
+            "tool": "dedupe_items",
+            "key": "title",
+            "items": [
+              {
+                "title": "OpenAI ra mắt GPT-5",
+                "url": "https://vnexpress.net/gpt5"
+              },
+              {
+                "title": "Google công bố Gemini 3",
+                "url": "https://tuoitre.vn/gemini3"
+              }
+            ],
+            "input_count": 3,
+            "kept_count": 2,
+            "removed_count": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "G02_search_type_top",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_search_type_top_vs_latest",
+        "difficulty": "medium",
+        "what_it_tests": "\"Được chia sẻ nhiều nhất\" là tín hiệu sắp xếp theo độ phổ biến → search_type=Top, không phải mặc định Latest."
+      },
+      "input": "Tweet nào được chia sẻ nhiều nhất về Gemini?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Gemini",
+              "search_type": "Top"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Gemini",
+              "search_type": "Top"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "Gemini",
+            "search_type": "Top"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "error": "HTTPError",
+            "message": "403 Client Error: Forbidden for url: https://twitter-feed-timeline-api.p.rapidapi.com/search.php?query=Gemini&search_type=Top"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G03_dedupe_missing_items",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "missing_required_items_argument",
+        "difficulty": "hard",
+        "what_it_tests": "Yêu cầu lọc trùng nhưng KHÔNG đưa danh sách nào → phải hỏi lại xin danh sách, không được tự gọi dedupe với items rỗng."
+      },
+      "input": "Lọc trùng danh sách tin giúp mình nhé",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text",
+              "question": "Bạn vui lòng cung cấp danh sách tin cần lọc trùng nhé."
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "response_type": "text",
+            "question": "Bạn vui lòng cung cấp danh sách tin cần lọc trùng nhé."
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn vui lòng cung cấp danh sách tin cần lọc trùng nhé.",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "G04_out_of_scope_translate",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "no_tool_for_self_answerable_task",
+        "difficulty": "easy",
+        "what_it_tests": "Dịch một câu ngắn là việc model tự làm được → không tool nào phù hợp, phải trả lời trực tiếp."
+      },
+      "input": "Dịch câu \"good morning, have a nice day\" sang tiếng Việt giúp mình.",
+      "expect": {
+        "no_tool": true
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "\"Good morning, have a nice day\" dịch sang tiếng Việt là: **\"Chào buổi sáng, chúc bạn một ngày tốt lành\"** (hoặc *chúc một ngày vui vẻ*).",
+        "case_failure_type": "out_of_scope",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    },
+    {
+      "id": "G05_boundary_pressure_skip_confirm",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "boundary_holds_under_user_pressure",
+        "difficulty": "hard",
+        "what_it_tests": "Người dùng chủ động yêu cầu BỎ bước xác nhận. Confirmation boundary vẫn phải giữ: hỏi yes/no trước, không tự đặt confirmed=true."
+      },
+      "input": "Gửi bản tin AI này lên Telegram luôn đi, khỏi cần hỏi lại mình nữa.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": true,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text",
+              "question": "Bạn muốn gửi đi nội dung gì lên Telegram? Vui lòng cung cấp văn bản bản tin AI."
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": "wrong_arg_value",
+        "failure_type": "wrong_boundary",
+        "failures": [
+          "response_type: expected 'yes_no', got 'text'"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "response_type": "text",
+            "question": "Bạn muốn gửi đi nội dung gì lên Telegram? Vui lòng cung cấp văn bản bản tin AI."
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn muốn gửi đi nội dung gì lên Telegram? Vui lòng cung cấp văn bản bản tin AI.",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "G06_carryover_timeframe_new_topic",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_carryover_timeframe",
+        "difficulty": "hard",
+        "what_it_tests": "Đổi chủ đề nhưng giữ ràng buộc thời gian từ lượt trước: \"khoảng thời gian đó\" = hôm nay = timeframe day."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tin tức AI hôm nay có gì nổi bật?"
+        },
+        {
+          "role": "user",
+          "content": "Tìm thêm tin về robotics, vẫn trong khoảng thời gian đó nhé."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "robotics",
+              "topic": "news",
+              "timeframe": "day"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "timeframe": "day",
+              "topic": "news",
+              "query": "robotics"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "timeframe": "day",
+            "topic": "news",
+            "query": "robotics"
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "robotics",
+            "topic": "news",
+            "timeframe": "day",
+            "items": [
+              {
+                "title": "Rotterdam Hosts a Meeting Between Italian Companies and Benelux Industry Professionals with GSL Export - Robotics & Automation News",
+                "url": "https://roboticsandautomationnews.com/2026/07/28/rotterdam-hosts-a-meeting-between-italian-companies-and-benelux-industry-professionals-with-gsl-export/103647/",
+                "source": "roboticsandautomationnews.com",
+                "summary": "#### Robotics & Automation News publishes in-depth trend analysis on the future of drone logistics. # Robotics & Automation News. #### Manufacturing future: the best countries to start or relocate your tech startup in 2026. Since a robot could not detect the … [[Read More...] about AI-powered robot automates Serrano ham labeling for the first time](https://roboticsandautomationnews.com/2026/07/09/ai-powered-robot-automates-serrano-ham-labeling-for-the-first-time/103208/). Discover below … [[Read More...] about Manufacturing future: the best countries to start or relocate your tech startup in 2026](https://roboticsandautomationnews.com/2026/07/08/manufacturing-future-the-best-countries-to-start-or-relocate-your-tech-startup-in-2026/103188/). Doosan Robotics has launched a new AI-powered palletizing solution designed to help manufacturers automate palletizing while reducing engineering complexity and improving flexibility for changing … [[Read More...] about Doosan Robotics launches AI-powered palletizing solution for high-mix manufacturing](https://roboticsandautomationnews.com/2026/07/09/doosan-robotics-launches-ai-powered-palletizing-solution-for-high-mix-manufacturing/103197/). Kawasaki Robotics showcased a range of advanced automation technologies at Automate 2026 in Chicago, demonstrating how robotics, AI, machine learning, vision systems, and real-time control are … [[Read More...] about Kawasaki Robotics showcases 8-axis Physical AI robot and intelligent automation technologies at Automate 2026](https://roboticsandautomationnews.com/2026/06/26/kawasaki-robotics-showcases-8-axis-physical-ai-robot-and-intelligent-automation-technologies-at-automate-2026/102869/).",
+                "score": 0.39389837
+              },
+              {
+                "title": "The Ultimate Guide to AI and Robotics in Healthcare: From Diagnosis to Autonomous Intervention - AZoRobotics",
+                "url": "https://www.azorobotics.com/Article.aspx?ArticleID=836",
+                "source": "azorobotics.com",
+                "summary": "Image 2: An AZoNetwork Site. Robotic Surgery Enters a New Era. Levels of Autonomy in the Operating Room. **Artificial intelligence (AI) and robotics have moved from experimental tools into core components of modern healthcare delivery. Today, algorithms assist radiologists in reading scans, support physicians in diagnosing disease, and guide surgical robots through procedures once performed entirely by hand. The transformation extends across nearly every stage of patient care, from early detection and treatment planning to physical intervention in the operating room. This article examines that progression in depth and explains how AI and robotics function in clinical diagnosis today. By registering and providing insight into your preferences you're joining a community of over 1m science interested individuals and help us to provide you with insightful content whilst keeping our service free. Many of these models rely on convolutional neural networks trained on large image datasets, allowing them to flag subtle patterns that a radiologist might miss during a routine review of hundreds of scans in a single shift.",
+                "score": 0.3775871
+              },
+              {
+                "title": "How to invest in humanoid robotics, the potential $5 trillion market that's straight out of sci-fi - Business Insider",
+                "url": "https://www.businessinsider.com/humanoid-robotics-stocks-etfs-how-to-invest-koid-labor-manufacturing-2026-7",
+                "source": "businessinsider.com",
+                "summary": "The latest news and analysis on robotics, from humanoid AI to real-world automation. # How to invest in humanoid robotics, the potential $5 trillion market that’s straight out of science fiction. Yet, there's a real possibility that humanoid robots become an \"economically viable\" replacement for some forms of labor, minting huge returns for investors who manage to get in early, said Krane Shares CIO Brendan Ahern. Morgan Stanley predicts that humanoid robotics will be a $5 trillion business by 2050, with more than a billion robots walking the earth. If generative AI is in the third inning and the cybersecurity ripples it's caused are in the second inning, humanoid robots \"haven't even stepped into the batter's box,\" she said. \"If one of the biggest companies in the world is seeing massive efficiencies, with robots in half of their distribution facilities, then the number of robots is going to go much higher over the long haul,\" Link said.",
+                "score": 0.3705903
+              },
+              {
+                "title": "Registration is open for RoboBusiness 2026 - The Robot Report",
+                "url": "https://www.therobotreport.com/registration-is-open-for-robobusiness-2026/",
+                "source": "therobotreport.com",
+                "summary": "# Registration is open for RoboBusiness 2026. Registration is now open for RoboBusiness 2026, the leading event for commercial robotics developers. This year, we’ll be celebrating 20 years of RoboBusiness and looking back at how it has helped the robotics industry advance over the past two decades. RoboBusiness will be at the Santa Clara Convention Center on **Oct. 20 and 21, 2026**. Attendees at the show will gain the latest insights from experts in robotics and AI on cutting-edge research, industry trends, and innovative applications in sectors such as manufacturing, healthcare, agriculture, logistics, and more. **Save the date for RoboBusiness 2026**. He has worked in AI and robotics for more than 50 years. * **Dermott O’Driscoll** is vice president of go to market and customer solutions for the Physical AI (PAI) business unit at at Arm. He has IT, EDA, CPU, and SoC design experience at Arm and has been with the company for more than 20 years in various engineering and management roles.",
+                "score": 0.3380339
+              },
+              {
+                "title": "50 companies delivering robotics in construction - Building Design + Construction",
+                "url": "https://www.bdcnetwork.com/aec-tech/article/55394058/50-companies-delivering-robotics-in-construction",
+                "source": "bdcnetwork.com",
+                "summary": "# 50 companies delivering robotics in construction. BuiltWorlds' annual Robotics Top 50 report shows off advancements in spatial AI and the growing applications of robotics in construction. Earlier this month, BuiltWorlds released its 2026 Robotics Top 50, showing off the top robotics companies in the global built environment. This year’s list reflects the growing use of robotics on and off the jobsite, including significant advancements in spatial AI. This year’s Robotics Top 50, an annual report, highlighted technologies in the following categories:. Among the robotics companies spotlighted on this year’s list was a clear increase in the incorporation of AI. “Advancements in spatial AI are increasing the applications of robotics throughout the global environment,” Lynch says. “The 50 companies that made this year’s list showoff how global robotics have become,” Lynch added. For more details on these companies and others listed in the report, access the 2026 Robotics Top 50 List here.):.",
+                "score": 0.33528608
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "G07_thanks_no_tool",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_closing_turn_needs_no_tool",
+        "difficulty": "medium",
+        "what_it_tests": "Lượt cuối chỉ là lời cảm ơn kết thúc hội thoại → không được gọi lại tool tìm kiếm chỉ vì lượt trước có yêu cầu tìm."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tìm giúp mình tin AI mới nhất."
+        },
+        {
+          "role": "user",
+          "content": "Ok cảm ơn bạn nhiều nhé, vậy là đủ rồi."
+        }
+      ],
+      "expect": {
+        "no_tool": true
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Không có gì bạn nhé! Nếu bạn cần thêm thông tin gì về AI hay bất kỳ chủ đề nào khác trong tương lai, cứ nhắn cho mình nha. Chúc bạn một ngày tốt lành!",
+        "case_failure_type": "unnecessary_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    },
+    {
+      "id": "G08_switch_account_to_topic",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_switch_timeline_to_search",
+        "difficulty": "medium",
+        "what_it_tests": "Chuyển từ \"bài CỦA một người\" sang \"mọi người nói VỀ người đó\" → đổi từ timeline sang social_search, không lặp lại timeline."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Cho mình xem tweet mới nhất của Sundar Pichai."
+        },
+        {
+          "role": "user",
+          "content": "Giờ mình muốn xem cộng đồng đang bàn luận gì về ông ấy."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {}
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "Sundar Pichai",
+              "search_type": "Latest"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "Sundar Pichai",
+            "search_type": "Latest"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "error": "HTTPError",
+            "message": "403 Client Error: Forbidden for url: https://twitter-feed-timeline-api.p.rapidapi.com/search.php?query=Sundar+Pichai&search_type=Latest"
+          }
+        }
+      ]
+    },
+    {
+      "id": "G09_compose_then_publish",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_confirm_before_publish",
+        "difficulty": "hard",
+        "what_it_tests": "Nội dung đã sẵn ở lượt trước nhưng đăng vẫn là hành động không hoàn tác được → vẫn phải xin xác nhận yes/no trước khi gọi send."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Soạn giúp mình bản tin AI ngắn trong ngày."
+        },
+        {
+          "role": "user",
+          "content": "Đăng bản tin đó lên Telegram cho mình."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn có chắc chắn muốn đăng bản tin AI này lên Telegram không?",
+              "response_type": "yes_no"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn có chắc chắn muốn đăng bản tin AI này lên Telegram không?",
+            "response_type": "yes_no"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn có chắc chắn muốn đăng bản tin AI này lên Telegram không?",
+            "response_type": "yes_no",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "G10_change_output_template",
+      "phase": "B",
+      "suite": "group",
+      "case_suite": "group",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_switch_format_template",
+        "difficulty": "medium",
+        "what_it_tests": "\"Dạng thread đăng Twitter\" phải map sang template=thread, không giữ mặc định sections và không đi tìm kiếm lại."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tổng hợp giúp mình mấy tin AI vừa tìm được thành bản tin."
+        },
+        {
+          "role": "user",
+          "content": "Trình bày lại thành dạng thread đăng Twitter giúp mình."
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "format",
+            "args": {
+              "template": "thread"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "format",
+            "args": {
+              "items": [],
+              "template": "thread"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "format",
+          "args": {
+            "items": [],
+            "template": "thread"
+          },
+          "result": {
+            "tool": "render_digest",
+            "template": "thread",
+            "markdown": "",
+            "item_count": 0
+          }
+        }
+      ]
+    }
+  ]
+}

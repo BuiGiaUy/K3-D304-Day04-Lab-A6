@@ -1,0 +1,1323 @@
+{
+  "run_id": "v2_B_base_openrouter_20260729T123727781702",
+  "version": "v2",
+  "artifact_version": "v2+p2df5c3a17f10+t1de264033aea",
+  "prompt_hash": "2df5c3a17f10a54afa3b608b85a84a27485072af1d5bd054aaf55fcb40adf7a4",
+  "tools_hash": "1de264033aea4923b28f42bce48ad710ff860c9327a3bd471d0888d4636a6e50",
+  "phase": "B",
+  "suite": "base",
+  "provider": "openrouter",
+  "model": "nvidia/nemotron-3-ultra-550b-a55b:free",
+  "system_prompt": "D:\\AITHUCCHIEN\\LABS\\K3-D304-Day04-Lab-A6\\starter_v0\\artifacts\\system_prompt.md",
+  "tools": "D:\\AITHUCCHIEN\\LABS\\K3-D304-Day04-Lab-A6\\starter_v0\\artifacts\\tools.yaml",
+  "eval_cases": "data\\eval_base.json",
+  "dataset_id": "day04_v2_research_base",
+  "dataset_role": "base",
+  "description": "Core eval cho research agent: routing đúng tool + đúng args, hỏi lại khi thiếu (ask_user), xác nhận trước khi gửi, và xử lý câu ngoài phạm vi / không cần tool. Chấm trên tool_calls + args (subset). KHÔNG sửa file này — chỉ thêm case vào eval_group.json.",
+  "generated_at": "2026-07-29T12:37:27",
+  "summary": {
+    "total_cases": 20,
+    "measured_cases": 13,
+    "provider_error_cases": 7,
+    "passed_cases": 10,
+    "case_accuracy": 0.7692,
+    "tool_routing_accuracy": 1.0,
+    "argument_accuracy": 0.7692,
+    "multiturn_accuracy": null,
+    "failure_counts": {
+      "wrong_tool": 2,
+      "wrong_boundary": 1
+    },
+    "observed_mismatch_counts": {
+      "wrong_arg_value": 3
+    }
+  },
+  "results": [
+    {
+      "id": "R01_user_tweets_routing",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_user_tweets_name_to_handle",
+        "difficulty": "medium",
+        "what_it_tests": "Tin CỦA một người nổi tiếng → map tên Sam Altman thành handle sama rồi gọi get_user_tweets."
+      },
+      "input": "Tweet mới nhất của Sam Altman là gì?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "sama"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "sama",
+              "limit": 5
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "timeline",
+          "args": {
+            "screenname": "sama",
+            "limit": 5
+          },
+          "result": {
+            "tool": "get_user_tweets",
+            "error": "HTTPError",
+            "message": "403 Client Error: Forbidden for url: https://twitter-feed-timeline-api.p.rapidapi.com/timeline.php?screenname=sama"
+          }
+        }
+      ]
+    },
+    {
+      "id": "R02_search_tweets_routing",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_search_tweets",
+        "difficulty": "easy",
+        "what_it_tests": "Tweet theo CHỦ ĐỀ → search_tweets, không phải get_user_tweets."
+      },
+      "input": "Mọi người đang bàn gì về GPT-5 trên Twitter?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {}
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "query": "GPT-5",
+              "search_type": "Latest",
+              "limit": 10
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "query": "GPT-5",
+            "search_type": "Latest",
+            "limit": 10
+          },
+          "result": {
+            "tool": "search_tweets",
+            "error": "HTTPError",
+            "message": "403 Client Error: Forbidden for url: https://twitter-feed-timeline-api.p.rapidapi.com/search.php?query=GPT-5&search_type=Latest"
+          }
+        }
+      ]
+    },
+    {
+      "id": "R03_web_news_routing",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_web_news",
+        "difficulty": "medium",
+        "what_it_tests": "Tin thời sự trên web → web_search topic=news, timeframe=day (hôm nay)."
+      },
+      "input": "Tin tức AI hôm nay có gì nổi bật?",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "AI",
+              "topic": "news",
+              "timeframe": "day"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": true,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "timeframe": "day",
+              "max_results": 10,
+              "query": "AI news today artificial intelligence latest developments"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": "wrong_arg_value",
+        "failure_type": "wrong_tool",
+        "failures": [
+          "query: expected 'AI', got 'AI news today artificial intelligence latest developments'",
+          "topic: expected 'news', got None"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "timeframe": "day",
+            "max_results": 10,
+            "query": "AI news today artificial intelligence latest developments"
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "AI news today artificial intelligence latest developments",
+            "topic": "general",
+            "timeframe": "day",
+            "items": [
+              {
+                "title": "China's humanoid robots aren't just learning how to walk. ...",
+                "url": "https://www.instagram.com/p/DbVjOQkln2j",
+                "source": "instagram.com",
+                "summary": "Video by Artificial Intelligence | ChatGPT | Technology on July 28, 2026. May be an image of bus, trailer, truck, road and text that says 'AI recreated one of Disney Cars' most iconic scenes in live action ® め'.\n\nVideo by Artificial Intelligence | ChatGPT | Technology on July 28, 2026. May be a meme of text that says 'Elon Musk: AI will likely take control from humans by 2036 you sounded yousoundedworriedthen. worried then.'. [...] Photo by Artificial Intelligence | ChatGPT | Technology on July 26, 2026.\n\nVideo by Artificial Intelligence | ChatGPT | Technology on July 26, 2026. May be an image of poster and text that says 'The fight took a month to code. The disrespect took a year.'.\n\nVideo by Artificial Intelligence | ChatGPT | Technology on July 25, 2026. May be an image of text that says 'This is the live-action live- Baki we should have had years ago agoand and it's absolute cinema HIGGSFIELD SEEDANCE 2.0 4K'. [...] Video by Artificial Intelligence | ChatGPT | Technology on July 27, 2026. May be an image of one or more people, vulture, poster and text that says 'Elon Musk ElonMusksaysmoneywontmotter says money won't matter by by2036 2036 Money Moneywon'tmatter won't matter -'.\n\nPhoto by Artificial Intelligence | ChatGPT | Technology on July 27, 2026.\n\nPhoto by Artificial Intelligence | ChatGPT | Technology on July 27, 2026.\n\nPhoto by Artificial Intelligence | ChatGPT | Technology on July 26, 2026.",
+                "score": 0.48221022
+              },
+              {
+                "title": "Chris Cuomo hosts NewsNation town hall on the future of AI",
+                "url": "https://thehill.com/homenews/media/5992805-chris-cuomo-tech-event",
+                "source": "thehill.com",
+                "summary": "Held in front of a live studio audience in New York City, the event will also feature a discussion on artificial intelligence, including what’s next for users and creators of AI, and how to measure its global impact.\n\nTuesday’s event comes as AI is increasingly standing alone among emerging technologies as taking a substantial foothold in all aspects of American business, politics and culture. [...] Some critics of AI’s growing presence in the U.S. say companies like Anthropic, OpenAI and Google are impacting the economy in a disruptive way, with more people than ever expressing concern about job reductions as a result of growth in the sector. [...] “Now, people can look at that through a very narrow lens of whether this means socialism or capitalism,” Cuomo said.“But if that were true, then President Trump would have designated himself as a socialist when he had the U.S. government take an equity stake in Intel.”\n\nThe anchor compared artificial technology to electricity,describing it as more of a“resource” than “a mere technology.”",
+                "score": 0.40457857
+              },
+              {
+                "title": "Investors ditch chip stocks as fears of AI bubble grow",
+                "url": "https://www.bbc.com/reel/video/p0p19209/watch",
+                "source": "bbc.com",
+                "summary": "Once again, fears of an AI investment bubble are rattling investors. Earlier, trading on South Korea's stock market had to be halted after a steep sell-off. The latest bout of nerves is being caused by news that chip giant Nvidia is investing three-quarters of a trillion dollars to help fund artificial intelligence infrastructure projects. Sceptics call this 'circular financing', where a supplier invests money in its customers, artificially inflating demand. South Korean shares slumped 10 [...] The cutting-edge robotic technology featuring at this year's World Cup.\n\nInside Troy, the legendary city of the Trojan War\n\n## Inside Troy, 'the legendary city of the Trojan War'\n\nThe BBC goes behind the scenes to uncover treasures that could point to the conflict immortalised by Homer.\n\nMarie Antoinette's necklace scandal\n\n## Marie Antoinette's costly diamond necklace scandal\n\nFalse accusations by a con artist damaged the queen's already fragile reputation.\n\nChicago’s biggest cheerleader [...] Researchers modelled AI job losses and found a seemingly unavoidable trap that every company could see coming.\n\nAn automatic football drills machine sat on the ground at an indoor training centre.\n\n## Could this machine change football training?\n\nHow technology is transforming football's future from the ground up.\n\nAre wellness supplements worth the hype?\n\n## Are wellness supplements worth the hype?",
+                "score": 0.38228035
+              },
+              {
+                "title": "Sam Altman on AGI, Compute, and Human Agency",
+                "url": "https://www.youtube.com/watch?v=XDB5beon4DY",
+                "source": "youtube.com",
+                "summary": "back to 2019. If we could go back to 2019 and show people our latest model. Not only would they say that it's AGI, they would say that economy would have had it completely upended. Yeah. Completely. Yes. And that has not happened. And I think just from a kind of like intellectual humility point, anytime you're that wrong and that confident, which I think we were as a field, you have to update. And there's a bunch of takeaways. One, like a boring one is that AI is just very jagged. It's like [...] is going to be a real update to the world about AI and there's a bunch of hard questions here about you know is this going to create a bunch of fake news is going to say really offensive things we're going to get in trouble so we decided we would start with a weaker version um the chat interface and GPT4 at the same time seemed like a lot so we would roll out the chat interface and GPT3.5 in fact it was originally going to be called chat with GPT3.5 and Uh we didn't plan to be product. Didn't [...] I suspect that although the current workflow of a researcher is going to very much be automated, there will be new things in the spirit of research in the same way that there's new things in the spirit of software engineering, even though we don't write code that will still matter. It seems like you've shifted your opinion on AI's impact on jobs in general and I'm sure in specific categories like that. Describe that change and your current view. You mentioned if we could go back to 2019. If we",
+                "score": 0.37820697
+              },
+              {
+                "title": "Another weekend another AI generated posting spree from the ...",
+                "url": "https://www.instagram.com/reel/DbV5J4Ftd0A",
+                "source": "instagram.com",
+                "summary": "Video by The Truth (In My Opinion) on July 28, 2026. May be a Twitter screenshot of phone, microphone and text.\n\nPhoto by The Truth (In My Opinion) on July 27, 2026. May be an image of magazine, poster and text.\n\nVideo by Cody Dahler on July 26, 2026. May be a meme of text.\n\nVideo by Cody Dahler on July 24, 2026. May be an image of poster and text that says 'DONALD TRUMP'S TRUMP'SELECTION ELECTION FRAUD SPECIAL latestattempta latest attempt at destabilizing destabilizingAmerican American'. [...] Another weekend another AI generated posting spree from the commander in sanity Donald Trump. Looks like Donald had cracked the code for the parental lock on the AI image generation software and took to creating fake movie posters where he was at one time a time travelling hero saving George Washington, some kind of space overlord and of course a commando commandeering an Iranian oil tanker. All in 6 hours work for the President of the United States. #donaldtrump #ai #iran #uspolitics #comedy [...] Video by The Truth (In My Opinion) on July 23, 2026. May be a meme of microphone and text.\n\nVideo by Cody Dahler on July 22, 2026. May be an image of cockroach and text that says 'KHC COCKBOAcH SPECIAL So you don't know how a cartooncockroach cartoon cockroach'.\n\nSee more posts\n\n---",
+                "score": 0.32833612
+              },
+              {
+                "title": "RFK Jr’s ‘weird’ Blade Runner AI video sparks ridicule | indy100",
+                "url": "https://www.indy100.com/politics/rfk-jr-ai-blade-runner",
+                "source": "indy100.com",
+                "summary": "Have your say in our news democracy. Click the upvote icon at the top of the page to help raise this article through the indy100 rankings.\n\nrfk jrnewsartificial intelligencedepartment of health and human servicestrump administrationblade runnerrobert f kennedy jr\n\n## Top 100\n\nTrump bragging about White House 'buying 250 Cadillacs' sparks backlash: ‘People can’t afford groceries’\n\n### Trump criticised over latest brag about 'buying 250 Cadillacs'\n\ndonald trump\n\ncadillacuswhite housedonald trump [...] Much like his boss, US president Donald Trump, health secretary Robert F. Kennedy Jr has used artificial intelligence (AI) to produce bizarre promotional videos for his social media channels. Back in March he posted a clip of himself topless, wrestling a man in a Twinkie costume – and we wish we were joking.\n\nNow, RFK Jr has seemingly taken inspiration from Blade Runner 2049 to push his Eat Real Food campaign, the same initiative plugged by the aforementioned Twinkie video. [...] ### What is the 'Can't always be LA' TikTok trend?\n\ntrend\n\ntrendingtiktoktiktok trendlalos angelesadélatrend\n\n10m\n\nTrump continues attack on reporter Kaitlan Collins with 'unhinged' AI post\n\n### Trump continues attack on Kaitlan Collins with 'unhinged' AI post\n\ndonald trump\n\nkaitlan collinsdonald trump\n\nJul 27, 2026\n\nThe Odyssey faces pushback as social media users criticise the limited 70mm screenings\n\n### The Odyssey faces pushback over criticism of limited 70mm screenings\n\nthe odyssey",
+                "score": 0.2843181
+              },
+              {
+                "title": "New poll shows Americans' growing concerns about AI ...",
+                "url": "https://www.foxnews.com/video/6402327786112",
+                "source": "foxnews.com",
+                "summary": "Tags\n\n SHOWS\n WHAT TO WATCH | VIDEOS\n LATEST NEWS | VIDEOS\n ON AIR\n FOX & FRIENDS\n V-VIDEO\n ARTIFICIAL INTELLIGENCE\n\n## Live Now\n\nAll times eastern\n\nNOW - 4:30 PM\n\n4:30 PM\n\n5:00 PM\n\n5:30 PM\n\n6:00 PM\n\n6:30 PM [...] 'CyberGuy' Kurt Knutsson addresses public concerns about AI data centers, noting a Fox News poll showing 70% opposition. Knutsson highlights that modern data centers are clean, with minimal impact on local water and electricity. He emphasizes that transparent communication is crucial for communities to understand these facilities' benefits and for the U.S. to maintain AI leadership against competitors.\n\nTags [...] Fox News Videos\n\nLog In\n\nJoin the conversation\n\nLog in to comment on videos and join in on the fun.\n\nWatch Live TV\n\nWatch the live stream of Fox News and full episodes.\n\nDark Mode\n\nReduce eye strain and focus on the content that matters.\n\nto topclose\n\nOn Air\n\nCLIP\n\n# New poll shows Americans' growing concerns about AI expansion efforts\n\nKurt ‘CyberGuy’ Knutsson joins ‘Fox & Friends’ to discuss Americans’ stances on AI data centers and the technology’s rapid growth.",
+                "score": 0.27405667
+              },
+              {
+                "title": "China's reported chipmaking breakthrough is the latest sign of its ...",
+                "url": "https://www.tiktok.com/@cnbc/video/7667515301877075214",
+                "source": "tiktok.com",
+                "summary": "South Korea's hottest AI trade has turned into a painful lesson for thousands of retail investors. CNBC's Lee Ying Shan explains how leveraged bets on Samsung Electronics and SK Hynix unraveled and why regulators are now stepping in. Find the full report at the #linkinbio. #CNBC #SKHynix #Samsung\n\ncnbc\n\n1690\n\n·5d ago \n\nImage 16: Camadas de cera nas minhas manteguinhas 🤧 #fy #asmr [...] full report at the #linkinbio. #CNBC [...] The Pentagon on Thursday announced a contract with Oracle worth almost $7 billion over a decade, a big win for the software maker, which has been punished by investors this year. The stock rose about 3% in extended trading. Read more at the #linkinbio and the link on screen. #CNBC\n\ncnbc\n\n4937\n\n·5d ago \n\nImage 17: Camadas de cera nas minhas manteguinhas 🤧 #fy #asmr",
+                "score": 0.27103806
+              },
+              {
+                "title": "Nvidia, AI Stocks Tumble as China Chip Progress Sparks ...",
+                "url": "https://www.youtube.com/watch?v=9798KEYcTm4",
+                "source": "youtube.com",
+                "summary": "A selloff in semiconductor stocks has deepened as signs of progress in China's advanced chipmaking added to fears about the sustainability of the artificial",
+                "score": 0.15878677
+              },
+              {
+                "title": "Instagram",
+                "url": "https://www.instagram.com/reel/DbScblMgiQB",
+                "source": "instagram.com",
+                "summary": "carterpcs\\_\n\nThis politician used AI to write his speech.. and read the prompt out loud #carterpcs #tech #ai #chatgpt\n\ncarterhelppls's profile picture\n\ncarterhelppls\n\nHi @carterpcs\\_ I have int. Graphics, 4 gig of ddr2 ram, intel i 3 chip all in a crappy old hp windows 7 laptop with no wifi no bluetooth TouchPad stopped working and keys started feeling off been using it for 8 yrs rlly need a upgrade 😭🙏\n\nReply\n\nkoqa70's profile picture\n\nkoqa70 [...] alecazar\\_alex\n\nHello CP can u watch my sketch 😭\n\nReply\n\nshora.kenan10's profile picture\n\nshora.kenan10\n\nTheyre too old for AI\n\nReply\n\nidkman6462's profile picture\n\nidkman6462\n\nHEY CHECKOUT MY EDIT CP 🤞\n\nReply\n\ngeorge318697's profile picture\n\ngeorge318697\n\nday 2 of asking for a new phone\n\nReply\n\nhowdy.dark's profile picture\n\nhowdy.dark\n\nhey cp can u gimme cp😔😔\n\nReply\n\nandybiale's profile picture\n\nandybiale\n\nhumanity is dying\n\nReply\n\nplayboi_curry77's profile picture\n\nplayboi\\_curry77 [...] See more posts\n\n---",
+                "score": 0.0784517
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "R04_read_url_routing",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "routing_read_url",
+        "difficulty": "easy",
+        "what_it_tests": "Đã có link cụ thể → read_url, không phải web_search."
+      },
+      "input": "Tóm tắt bài này giúp mình: https://openai.com/blog/gpt-5",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "fetch",
+            "args": {
+              "url": "https://openai.com/blog/gpt-5"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "fetch",
+            "args": {
+              "url": "https://openai.com/blog/gpt-5"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "fetch",
+          "args": {
+            "url": "https://openai.com/blog/gpt-5"
+          },
+          "result": {
+            "tool": "read_url",
+            "url": "https://openai.com/blog/gpt-5",
+            "items": [
+              {
+                "title": "OpenAI",
+                "url": "https://openai.com/blog/gpt-5",
+                "source": "openai.com",
+                "summary": "OpenAI\n\n# 404\n\nThe index rests now\n\nQuiet shelves hold their places\n\nChoose another book\n\nby [gpt-5.6-sol(opens in a new window)](https://chatgpt.com/?model=gpt-5.6-sol&openaicom-did=7a141251-4857-4d8f-b647-2185b2604f77&openaicom_referred=true)"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "R05_limit_arg",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_limit",
+        "difficulty": "easy",
+        "what_it_tests": "Trích đúng limit=10 từ '10 tweet'."
+      },
+      "input": "Lấy 10 tweet mới nhất của Elon Musk",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "elonmusk",
+              "limit": 10
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "elonmusk",
+              "limit": 10
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "timeline",
+          "args": {
+            "screenname": "elonmusk",
+            "limit": 10
+          },
+          "result": {
+            "tool": "get_user_tweets",
+            "error": "HTTPError",
+            "message": "403 Client Error: Forbidden for url: https://twitter-feed-timeline-api.p.rapidapi.com/timeline.php?screenname=elonmusk"
+          }
+        }
+      ]
+    },
+    {
+      "id": "R06_timeframe_arg",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_timeframe",
+        "difficulty": "medium",
+        "what_it_tests": "'tuần này' → timeframe=week."
+      },
+      "input": "Tin công nghệ trong tuần này",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "topic": "news",
+              "timeframe": "week"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "timeframe": "week",
+              "topic": "news",
+              "query": "tin công nghệ tuần này",
+              "max_results": 10
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "timeframe": "week",
+            "topic": "news",
+            "query": "tin công nghệ tuần này",
+            "max_results": 10
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "tin công nghệ tuần này",
+            "topic": "news",
+            "timeframe": "week",
+            "items": [
+              {
+                "title": "Tech stocks today: Big Tech earnings this week mark a pivotal moment for the AI trade - Yahoo Finance",
+                "url": "https://finance.yahoo.com/technology/live/tech-stocks-today-big-tech-earnings-134611080.html",
+                "source": "finance.yahoo.com",
+                "summary": "Skip to navigation  Skip to right column. 3. Most active penny stocks. 2. Best 0% APR cards. 3. Best balance transfer cards. 2. Best high-yield savings accounts. 3. Best money market accounts. 4. Best free checking accounts. 2. Types of car insurance. 2. Tax brackets and rates. 3. How to get approved. 6. Asking for a Trend. LIVE   Updated 3 mins ago. # Tech stocks today: Big Tech earnings this week mark a pivotal moment for the AI trade. Tech stocks rose on Monday morning amid tentative optimism ahead of a flood of Big Tech earnings this week. Results from Microsoft (MSFT), Meta Platforms (META), Apple (AAPL), and Amazon (AMZN) highlight the calendar, while reports from key chipmakers like SK Hynix (SKHY) and Qualcomm (QCOM) also factor in. Meanwhile, Nvidia (NVDA) is reportedly in talks with OpenAI (OPAI.PVT) to provide $250 billion in financing for a data center project in Ohio, once again raising questions about circular financing in the AI industry.",
+                "score": 0.31254882
+              },
+              {
+                "title": "The Week In Technology, July 27-31, 2026 - Aviation Week",
+                "url": "https://aviationweek.com/aerospace/emerging-technologies/week-technology-july-27-31-2026",
+                "source": "aviationweek.com",
+                "summary": "* Aviation Week & Space Technology - Inside MRO. * Engine Leasing Trading & Finance Europe. * Engine Leasing, Trading & Finance Americas. * CAPA Airline Leader Summit - Airlines in Transition. * CAPA Airline Leader Summit - Americas. * CAPA Airline Leader Summit - Latin America & Caribbean. * CAPA Airline Leader Summit - Australia Pacific. * CAPA Airline Leader Summit - Asia & Sustainability Awards. * CAPA Airline Leader Summit - World & Awards for Excellence. * CAPA Asia Aviation Summit & Awards for Excellence. * Aviation Week's Space Tech Challenge Awards. - Aviation Week & Space Technology 100-Year. # The Week In Technology, July 27-31, 2026. Graham leads Aviation Week's coverage of technology, focusing on engineering and technology across the aerospace industry, with a special focus on identifying technologies of strategic importance to aviation, aerospace and defense. **The Week In Technology, July 27-31, 2026** is available to both *Aviation Week & Space Technology* and AWIN subscribers.",
+                "score": 0.23212774
+              },
+              {
+                "title": "CNBC TechCheck Evening Edition: July 24, 2026 - CNBC",
+                "url": "https://www.cnbc.com/video/2026/07/24/cnbc-techcheck-evening-edition-july-24-2026.html",
+                "source": "cnbc.com",
+                "summary": "# TechCheck Briefings. # CNBC TechCheck Evening Edition: July 24, 2026. CNBC's TechCheck brings you the latest in tech news from CNBC's 1 Market in the heart of San Francisco.",
+                "score": 0.17021844
+              },
+              {
+                "title": "9 Cool New Gadgets to Keep on Your Radar - Gear Patrol",
+                "url": "https://www.gearpatrol.com/audio/best-new-tech-releases-7-26-26/",
+                "source": "gearpatrol.com",
+                "summary": "Home / Audio / Best New Gear. Catching you up on the past week’s most notable product releases. Another week down, and, per usual, a bunch of new tech and gadgets have been announced. This past week, Samsung introduced its latest foldable smartphones, there’s a new $35 Kodak camera, and Quad revealed a new entry-level loudspeaker range. Below, we’ve rounded up all the most interesting new releases and announcements you might have missed from the past week. The Kodak EC35 is the most affordable Kodak-branded 35mm film camera. The Elegan 1 is Quad’s new entry-level bookshelf speakers, designed to bring the brand’s acclaimed hi-fi sound to a more accessible price. The Elegan 2 are the floorstanding speakers in Quad’s new entry-level Elegan range. They have a three-way design and feature the same 1-inch fabric-dome tweeter as the Elegan 1 bookshelf speakers, but add a second 6.4-inch woven Kevlar woofer and a dedicated midrange driver.",
+                "score": 0.16531023
+              },
+              {
+                "title": "CNBC TechCheck Evening Edition: July 23, 2026 - CNBC",
+                "url": "https://www.cnbc.com/video/2026/07/23/cnbc-techcheck-evening-edition-july-23rd-2026.html",
+                "source": "cnbc.com",
+                "summary": "# TechCheck Briefings. # CNBC TechCheck Evening Edition: July 23, 2026. CNBC's TechCheck brings you the latest in tech news from CNBC's 1 Market in the heart of San Francisco.",
+                "score": 0.15784983
+              },
+              {
+                "title": "CNBC TechCheck Evening Edition: July 28, 2026 - CNBC",
+                "url": "https://www.cnbc.com/video/2026/07/28/cnbc-techcheck-evening-edition-july-28-2026.html",
+                "source": "cnbc.com",
+                "summary": "# TechCheck Briefings. # CNBC TechCheck Evening Edition: July 28, 2026. CNBC's TechCheck brings you the latest in tech news from CNBC's 1 Market in the heart of San Francisco.",
+                "score": 0.15149195
+              },
+              {
+                "title": "CNBC TechCheck Evening Edition: July 22, 2026 - CNBC",
+                "url": "https://www.cnbc.com/video/2026/07/22/cnbc-techcheck-evening-edition-july-22-2026.html",
+                "source": "cnbc.com",
+                "summary": "# TechCheck Briefings. # CNBC TechCheck Evening Edition: July 22, 2026. CNBC's TechCheck brings you the latest in tech news from CNBC's 1 Market in the heart of San Francisco.",
+                "score": 0.15059036
+              },
+              {
+                "title": "4 Big Tech earnings reports, a Fed meeting, and $100 oil: It's the busiest week of the quarter - Yahoo Finance",
+                "url": "https://finance.yahoo.com/markets/article/4-big-tech-earnings-reports-a-fed-meeting-and-100-oil-its-the-busiest-week-of-the-quarter-100000261.html",
+                "source": "finance.yahoo.com",
+                "summary": "# 4 Big Tech earnings reports, a Fed meeting, and $100 oil: It's the busiest week of the quarter. As another frenetic week in the markets comes to a close, investors prepare to step into a new five-day stretch that might get even busier, with a ream of Big Tech earnings, a Fed decision, and rapidly worsening conditions in the Middle East all front and center. The S&P 500 (^GSPC) closed out Friday 0.1% in the green for a loss of 0.6% on the week. The Dow (^DJI) gained 0.6% on Friday to close the week 0.4% down. The Nasdaq (^IXIC) 0.6% on Friday, losing 2.1% on the week. Earnings from four of the \"Magnificent Seven\" Big Tech leaders headline the week: Microsoft (MSFT) and Meta (META) on Wednesday, then Apple (AAPL) and Amazon.com (AMZN) on Thursday. As was true for earnings last week from Alphabet and Tesla, there's one big question looming over the Magnificent Seven's second quarter reports: How much are you spending, and, crucially, what are you getting for it?",
+                "score": 0.14651443
+              },
+              {
+                "title": "Why Continuous Hormone Monitoring Could Transform Women's Health Monitoring - Forbes",
+                "url": "https://www.forbes.com/sites/geristengel/2026/07/24/ida-tin-coined-femtech-now-shes-funding-continuous-hormone-monitoring/",
+                "source": "forbes.com",
+                "summary": "# Ida Tin Coined Femtech. Now She’s Funding Continuous Hormone Monitoring. Ida Tin coined \"femtech\" and built Clue. Now she's directing a €40 million German government challenge to fund what femtech skipped: biosensors that read hormones continuously in real time. The goal isn't a single winning product—it's the shared scientific infrastructure, including the first standardized hormone dataset, that no startup could build alone. A jury convened in Leipzig and selected the eight teams to compete for the €40 million SPRIND Continuous Hormone Monitoring Challenge in Europe’s first government-backed race to develop biosensors that measure at least four hormones over seven days. Leading the effort is Ida Tin, the Danish entrepreneur who founded the period-tracking app, Clue, in 2012 and coined the term “femtech” in 2016—a word that helped make women’s health a recognized investment category. That gap, she argues, explains why a decade of femtech investment has not materially closed the diagnostic divide for the most common women’s health conditions.",
+                "score": 0.12363014
+              },
+              {
+                "title": "What to Expect in Markets This Week: Amazon, Apple, Meta and Microsoft Earnings; Fed Interest Rate Decision - Investopedia",
+                "url": "https://www.investopedia.com/what-to-expect-in-markets-this-week-amazon-apple-meta-microsoft-earnings-fed-interest-rate-decision-12025525",
+                "source": "investopedia.com",
+                "summary": "# What to Expect in Markets This Week: Amazon, Apple, Meta and Microsoft Earnings; Fed Interest Rate Decision. America’s AI buildout will be in the spotlight this week, with some of the world’s biggest tech companies due to hand in their latest results and Federal Reserve officials expected to take up the topic when they meet. The Federal Open Markets Committee, which sets monetary policy, is likely to discuss AI and other factors influencing inflation when it meets Tuesday and Wednesday.1 The central bank is unlikely to adjust interest rates this week, but rate hikes may be coming later in the year, some Fed watchers say. What Amazon, Apple, Microsoft and Meta Platforms have to say about their AI spending may be of more interest than the numbers they hand in this week.2 345 Last week, Alphabet handily beat expectations, but its stock sank after the parent company of Google and YouTube raised its projected expenditures on AI infrastructure.",
+                "score": 0.11987123
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "R07_search_type_arg",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "arg_search_type",
+        "difficulty": "medium",
+        "what_it_tests": "'phổ biến/top' → search_type=Top (không phải Latest)."
+      },
+      "input": "Cho mình các tweet phổ biến (top) nhất về OpenAI",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "search_type": "Top"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "social_search",
+            "args": {
+              "limit": 10,
+              "search_type": "Top",
+              "query": "OpenAI"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "social_search",
+          "args": {
+            "limit": 10,
+            "search_type": "Top",
+            "query": "OpenAI"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "error": "HTTPError",
+            "message": "403 Client Error: Forbidden for url: https://twitter-feed-timeline-api.p.rapidapi.com/search.php?query=OpenAI&search_type=Top"
+          }
+        }
+      ]
+    },
+    {
+      "id": "R08_out_of_scope",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "out_of_scope",
+        "difficulty": "easy",
+        "what_it_tests": "Câu ngoài phạm vi research → KHÔNG gọi tool, từ chối/định hướng."
+      },
+      "input": "Giải giúp mình bài toán tích phân: nguyên hàm của x^2 là gì?",
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Nguyên hàm của $x^2$ là:\n\n$$\\int x^2 \\, dx = \\frac{x^3}{3} + C$$\n\nTrong đó $C$ là hằng số tích phân (có thể là bất kỳ số thực nào).\n\n**Giải thích nhanh:** Theo quy tắc lũy thừa $\\int x^n \\, dx = \\frac{x^{n+1}}{n+1} + C$ (với $n \\neq -1$), ta có $n=2$ nên kết quả là $\\frac{x^{2+1}}{2+1} = \\frac{x^3}{3}$.",
+        "case_failure_type": "out_of_scope",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    },
+    {
+      "id": "R09_no_tool_capability",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "no_tool_meta",
+        "difficulty": "easy",
+        "what_it_tests": "Câu hỏi meta → trả lời thẳng, KHÔNG gọi tool."
+      },
+      "input": "Bạn là gì và làm được những gì?",
+      "expect": {
+        "no_tool": true,
+        "behavior": "answer_without_tool"
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [],
+        "actual_text": "Tôi là một trợ lý nghiên cứu (research assistant) được thiết kế để giúp bạn tìm kiếm, tổng hợp và trình bày thông tin từ nhiều nguồn khác nhau.\n\n**Những gì tôi làm được:**\n\n1. **Tìm kiếm thông tin trên web** – tra cứu tin tức, bài viết, tài liệu công khai qua công cụ `lookup`.\n2. **Tìm kiếm trên mạng xã hội** – lấy bài đăng, chủ đề nóng trên X/Twitter qua `social_search` và `timeline`.\n3. **Tìm bài báo khoa học** – truy xuất paper từ arXiv qua `papers` và đọc toàn văn qua `paper_text`.\n4. **Lấy nội dung từ URL** – fetch trang web, bài báo, tài liệu qua `fetch`.\n5. **Xử lý & trình bày dữ liệu** – gộp, khử trùng (`dedupe`), định dạng thành báo cáo, bullet, thread, briefing (`format`).\n6. **Hỏi làm rõ** – khi thiếu thông tin bắt buộc, tôi sẽ hỏi lại thay vì đoán (`clarify`).\n7. **Xác nhận trước hành động ra ngoài** – gửi/đăng nội dung chỉ sau khi bạn đồng ý (`send` + `clarify` yes_no).\n8. **Tra cứu chính sách nội bộ** – tham chiếu quy tắc hoạt động qua `policy`.\n\n**Những gì tôi KHÔNG làm:**\n- Tự bịa dữ liệu hoặc đoán URL/tài khoản khi bạn chưa cung cấp.\n- Gửi/đăng nội dung ra kênh bên ngoài nếu chưa có sự xác nhận rõ ràng từ bạn.\n- Dùng tool để \"nói\" câu trả lời – tool chỉ để lấy/xử lý dữ liệu, câu trả lời do tôi tổng hợp và viết.\n\nBạn có thể yêu cầu tôi: *\"Tóm tắt 5 paper mới nhất về RAG\"*, *\"Lấy 10 tweet gần nhất của @OpenAI\"*, *\"Tìm tin tức về AI Việt Nam tuần này\"*, *\"Fetch bài viết này và tóm tắt: <URL>\"*...",
+        "case_failure_type": "unnecessary_tool",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": []
+    },
+    {
+      "id": "R10_missing_handle",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "clarify_missing_handle",
+        "difficulty": "medium",
+        "what_it_tests": "Thiếu handle → ask_user, KHÔNG đoán bừa người nào."
+      },
+      "input": "Tóm tắt 5 tweet mới nhất giúp mình",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text",
+              "question": "Bạn muốn tóm tắt tweet của tài khoản nào? Hãy cho mình biết @screenname (ví dụ: @elonmusk, @OpenAI, v.v.)"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "response_type": "text",
+            "question": "Bạn muốn tóm tắt tweet của tài khoản nào? Hãy cho mình biết @screenname (ví dụ: @elonmusk, @OpenAI, v.v.)"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn muốn tóm tắt tweet của tài khoản nào? Hãy cho mình biết @screenname (ví dụ: @elonmusk, @OpenAI, v.v.)",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "R11_missing_url",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "clarify_missing_url",
+        "difficulty": "medium",
+        "what_it_tests": "Nói 'bài này' nhưng không có link → ask_user xin URL."
+      },
+      "input": "Tóm tắt bài viết này hộ mình",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "text"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": true,
+        "routing_correct": true,
+        "args_correct": true,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn muốn tóm tắt bài viết nào? Hãy gửi link hoặc cho mình biết tiêu đề/tài khoản đăng bài nhé.",
+              "response_type": "text"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "missing_info",
+        "observed_mismatch": null,
+        "failure_type": null,
+        "failures": []
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn muốn tóm tắt bài viết nào? Hãy gửi link hoặc cho mình biết tiêu đề/tài khoản đăng bài nhé.",
+            "response_type": "text"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn muốn tóm tắt bài viết nào? Hãy gửi link hoặc cho mình biết tiêu đề/tài khoản đăng bài nhé.",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "R12_confirm_before_send",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "confirm_before_write",
+        "difficulty": "medium",
+        "what_it_tests": "Hành động ghi (gửi) → xác nhận trước (ask_user yes_no), không tự gửi."
+      },
+      "input": "Đăng bản tin này lên Telegram giúp mình",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "response_type": "yes_no"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": true,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "clarify",
+            "args": {
+              "question": "Bạn muốn đăng nội dung gì lên Telegram? Hãy cho mình biết nội dung cụ thể nhé.",
+              "response_type": "text"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_boundary",
+        "observed_mismatch": "wrong_arg_value",
+        "failure_type": "wrong_boundary",
+        "failures": [
+          "response_type: expected 'yes_no', got 'text'"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "clarify",
+          "args": {
+            "question": "Bạn muốn đăng nội dung gì lên Telegram? Hãy cho mình biết nội dung cụ thể nhé.",
+            "response_type": "text"
+          },
+          "result": {
+            "tool": "ask_user",
+            "question": "Bạn muốn đăng nội dung gì lên Telegram? Hãy cho mình biết nội dung cụ thể nhé.",
+            "response_type": "text",
+            "options": [],
+            "awaiting_user": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "R13_parallel_web_and_tweets",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "parallel_tool_calls",
+        "difficulty": "hard",
+        "what_it_tests": "Một request cần hai nguồn → gọi cả web_search và search_tweets; eval không phụ thuộc thứ tự tool call."
+      },
+      "input": "Tìm trên web tin AI hôm nay và tìm thêm tweet về AI.",
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "AI",
+              "topic": "news",
+              "timeframe": "day"
+            }
+          },
+          {
+            "name": "social_search",
+            "args": {
+              "query": "AI"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "routing_correct": true,
+        "args_correct": false,
+        "actual_tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "max_results": 10,
+              "timeframe": "day",
+              "query": "AI news today",
+              "topic": "news"
+            }
+          },
+          {
+            "name": "social_search",
+            "args": {
+              "limit": 10,
+              "query": "AI",
+              "search_type": "Latest"
+            }
+          }
+        ],
+        "actual_text": null,
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": "wrong_arg_value",
+        "failure_type": "wrong_tool",
+        "failures": [
+          "query: expected 'AI', got 'AI news today'"
+        ]
+      },
+      "tool_results": [
+        {
+          "tool": "lookup",
+          "args": {
+            "max_results": 10,
+            "timeframe": "day",
+            "query": "AI news today",
+            "topic": "news"
+          },
+          "result": {
+            "tool": "web_search",
+            "query": "AI news today",
+            "topic": "news",
+            "timeframe": "day",
+            "items": [
+              {
+                "title": "Report: Most Organizations Are Preparing Workers for Today's AI, Not Tomorrow's Jobs",
+                "url": "https://www.prnewswire.com/news-releases/report-most-organizations-are-preparing-workers-for-todays-ai-not-tomorrows-jobs-302836842.html",
+                "source": "prnewswire.com",
+                "summary": "Share toX\n\nNEW YORK, July 28, 2026 /PRNewswire/ -- As AI reshapes work, most organizations remain focused on helping employees grow in their current roles rather than preparing them for the jobs of the future, according to new research from The Conference Board. [...] Accessibility Statement Skip Navigation\n\n# Report: Most Organizations Are Preparing Workers for Today's AI, Not Tomorrow's Jobs\n\n\n\n## News provided by\n\n The Conference Board \n\nJul 28, 2026, 14:05 ET\n\n## Share this article\n\nShare toX\n\nShare this article\n\nShare toX [...] The Conference Board Leading Economic Index® (LEI) for the US declined by 0.2% in June 2026 to 99.1 (2016=100), following a 0.1% increase in May....\n\nMore Releases From This Source\n\n## Explore\n\nHuman Resource & Workforce Management\n\nHuman Resource & Workforce Management\n\nArtificial Intelligence\n\nArtificial Intelligence\n\nThe Latest Artificial Intelligence News\n\nThe Latest Artificial Intelligence News\n\nBanking & Financial Services\n\nBanking & Financial Services\n\n News Releases in Similar Topics",
+                "score": 0.72907686
+              },
+              {
+                "title": "AI sell-off intensifies as investors ditch chip stocks",
+                "url": "https://www.theguardian.com/business/2026/jul/28/ai-sell-off-chip-stocks-sk-hynix-samsung",
+                "source": "theguardian.com",
+                "summary": "On Monday, shares in the Chinese memory chip maker CXMT rose by 466% when it floated on the Shanghai stock exchange, underlining China’s drive to create its own AI supply chain.\n\nInvestors may also be growing jittery about the “circular funding” at the heart of the AI industry, through which artificial intelligence firms finance one another. [...] On Monday, the Wall Street Journal reported that Nvidia was in discussions with OpenAI about providing $250bn (£188bn) for a massive datacentre project in Ohio. Backing from Nvidia, which has an investment grade credit rating, could make it less expensive to raise funding for the project.\n\nskip past newsletter promotion\n\nafter newsletter promotion [...] Business live – latest updates\n\nThe sell-off in AI stocks has intensified, driving South Korea’s stock market down to its lowest level in three months.\n\nInvestors continued to ditch chip stocks on Tuesday, amid rising concerns about the huge amount of borrowing among AI companies to fund their datacentre expansion plans.",
+                "score": 0.5920305
+              },
+              {
+                "title": "Tech Stocks Tumble on Worries About A.I. Spending and ...",
+                "url": "https://www.nytimes.com/2026/07/28/business/stocks-ai-chips.html",
+                "source": "nytimes.com",
+                "summary": "The latest A.I.-related market tremor began on Monday, when the shares of China’s leading memory chipmaker, ChangXin Memory Technologies, began trading after a blockbuster initial public offering. The company’s stock soared nearly 500 percent on its market debut, quickly making it the most valuable company on the Shanghai exchange. It slipped 4 percent on Tuesday [...] Last week, earnings reports by Tesla and Alphabet, Google’s parent company, shook the markets as they revealed the staggering scale of spending required to keep up in the global A.I. race. On Monday, the Chinese start-up Moonshot publicly released the details of its latest A.I. model, adding to investor concerns about an A.I. arms race between China and the United States. [...] Stock markets in Asia tumbled on Tuesday, dragged down by technology companies facing hefty bills for the build-out of artificial intelligence systems and concerns over intensifying competition from China in memory chips — a critical component of A.I. long dominated by South Korea and its peers.",
+                "score": 0.5553635
+              },
+              {
+                "title": "How basic persuasion can bypass AI safeguards | Penn Today",
+                "url": "https://penntoday.upenn.edu/news/wharton-how-basic-persuasion-can-bypass-ai-safeguards",
+                "source": "penntoday.upenn.edu",
+                "summary": "2 min. read\n\nConcerns over “jailbreaking” AI—a way of circumventing the safety guardrails built into large language models—have escalated after the Trump administration ordered Anthropic to pull its latest models, Fable and Mythos, over concerns they could be coaxed into revealing security flaws in software.\n\nView large image [...] In their paper “Persuading Large Language Models to Comply With Objectionable Requests,” the researchers tested models from three leading AI labs: OpenAI’s GPT-5 mini, Anthropic’s Claude Haiku 4.5, and Google’s Gemini 3 Flash, by having 126,000 “conversations” with them. [...] Image: Hanna Barakat  & Archival Images of AI + AIxDESIGN /  / \n\nNow, timely research from Wharton’s Generative AI Labs (GAIL) suggests the safeguards designed to prevent misuse may be vulnerable to the same psychological tactics that influence people.",
+                "score": 0.49523994
+              },
+              {
+                "title": "SK Hynix posts sixfold rise in Q2 profit on AI chip demand, misses forecasts",
+                "url": "https://finance.yahoo.com/technology/ai/articles/sk-hynix-q2-profit-jumps-225720194.html",
+                "source": "finance.yahoo.com",
+                "summary": "Contract prices for certain dynamic ​random ​access memory (DRAM) chips jumped about 52% in the ​second quarter from the previous quarter, ‌while prices for some NAND products doubled, according to data from market tracker TrendForce.\n\nConcerns about the ability of \"hyperscalers\" like Microsoft, Alphabet, Amazon, Meta Platforms and Oracle to fund hundreds of billions of dollars of planned investment in AI infrastructure have weighed on chip shares globally in recent weeks. [...] The Nvidia supplier reported an operating profit of 60.5 trillion won ($41.62 billion) ​for the April-June period, compared with 9.2 trillion won a year earlier. But it missed a 64 trillion won forecast by LSEG SmartEstimate, which is weighted toward analysts who are more consistently accurate. [...] \"Driven by sustained demand growth from expanding AI infrastructure investments, high-performance products for AI ‌servers led price increases, enabling ⁠the company to surpass its previous record set in the prior quarter,\" SK Hynix said in a statement.\n\nSK Hynix missed analysts' forecasts because ⁠its higher exposure to high-end memory chips used in AI data centres than rivals meant it benefited less from a stronger price rally in conventional memory chips.",
+                "score": 0.432807
+              },
+              {
+                "title": "Jerry Gulke: Why AI Can’t Replace Price Risk Management in Corn Markets",
+                "url": "https://www.agweb.com/news/jerry-gulke-why-ai-cant-replace-price-risk-management-corn-markets",
+                "source": "agweb.com",
+                "summary": "(Farm Journal)\n\nI have no doubt Artificial Intelligence, as defined today, will aid in answering a lot of questions regarding production, but I wonder if it will be beneficial in today’s ag-commodity markets as it pertains to price-outlook and price risk management. It currently lacks intuition, experience, proactive analysis, and knowledge of eco-political events, and it doesn’t farm. [...] ## As corn futures swing sharply, Gulke says farmers can’t afford to ignore marketing opportunities — or assume AI can see around every corner.\n\n ByJerry Gulke\n\n•\n\n July 28, 2026 04:14 PM \n\nImage 2: Jerry-Gulke_What-AI-Misses-About-Price-risk.jpg\n\n(Farm Journal) [...] Cash Grain Bids  \n   Weather  \n   \nFarm Journal TV  \n       Watch Live\n       Watch On-Demand\n       Farm Journal Programs\n\n   \nMore  \n       Ag Economists Monthly Monitor\n       Opinion\n       Pro Farmer Crop Tour\n       AgFax\n       Climate Smart Opportunity Navigator\n       Events\n       All Topics\n\nMy Account\n\n Search Query Submit Search \n\n Show Search \n\nNews\n\n# Jerry Gulke: Why AI Can’t Replace Price Risk Management in Corn Markets",
+                "score": 0.3154201
+              },
+              {
+                "title": "Lessons From History About Today’s AI Bubble",
+                "url": "https://www.bloomberg.com/news/newsletters/2026-07-28/lessons-from-history-about-today-s-ai-bubble",
+                "source": "bloomberg.com",
+                "summary": "Welcome to the award-winning Money Distilled newsletter. I'm John Stepek. Every week day I look at the biggest stories in markets and economics,",
+                "score": 0.2659226
+              },
+              {
+                "title": "SK Hynix second-quarter revenue more than triples",
+                "url": "https://www.cnbc.com/2026/07/29/sk-hynix-earnings-profit-revenue-hbm-memory.html",
+                "source": "cnbc.com",
+                "summary": "Key Points\n\n SK Hynix hits another record milestone as AI demand shows no sign of cooling down.\n Second-quarter profit and revenue both missed estimates.\n Revenue jumped 257% from a year earlier.\n\nIn this article\n\n SKHY\n SKHY\n\nThe logo of SK hynix is displayed on a glass wall during the 2026 World IT Show in Seoul on April 22, 2026.\n\nJung Yeon-je | Afp | Getty Images [...] Revenue jumped 257% year on year in the quarter ended June from a year earlier, while operating profit soared nearly 557% year on year, the company's release showed..\n\nCompared with the previous quarter, revenue increased 51% while operating profit gained 61%\n\nThe record-shattering performance underscores robust AI demand, cementing SK Hynix's leadership in HBM, an advanced memory technology designed to process massive amounts of data at high speeds for AI applications. [...] Investing\n\n Personal Finance\n Fintech\n Financial Advisors\n Options Action\n ETF Street\n Buffett Archive\n Earnings\n Trader Talk\n\nTech\n\n Cybersecurity\n AI\n Enterprise\n Internet\n Media\n Mobile\n Social Media\n CNBC Disruptor 50\n Tech Guide\n\nPolitics\n\n White House\n Policy\n Defense\n Congress\n Expanding Opportunity\n Europe Politics\n China Politics\n Asia Politics\n World Politics\n\nVideo",
+                "score": 0.2104095
+              },
+              {
+                "title": "FirstFT: Chip stocks sink as AI sell-off intensifies",
+                "url": "https://www.ft.com/content/1c90934c-80c1-422c-b95b-5821a6fa9ec7?syn-25a6b1a6=1",
+                "source": "ft.com",
+                "summary": "# FirstFT: Chip stocks sink as AI sell-off intensifies\n\n## Try unlimited access\n\nThen R$375 per month. Complete digital access to quality FT journalism on any device. Cancel anytime during your trial.\n\n## Explore more offers.\n\n### FT Digital Edition\n\nOur digitised version of the FT newspaper, for easy reading on any device.\n\n### Standard Digital\n\nEssential digital access to quality FT journalism on any device. Pay a year upfront and save 20%.\n\n### Premium Digital [...] Complete digital access to quality FT journalism with expert analysis from industry leaders. Pay a year upfront and save 20%.\n\nCheck whether you already have access via your university or organisation.\n\nTerms & Conditions apply\n\n## Explore our full range of subscriptions.\n\n### For individuals\n\nDiscover all the plans currently available in your country\n\n### For multiple readers\n\nDigital access for organisations. Includes exclusive features and content.\n\n## Why the FT? [...] ## Why the FT?\n\nSee why over a million readers pay to read the Financial Times.\n\n## Useful links\n\n### Support\n\n### Legal & Privacy\n\n### Services\n\n### Tools\n\n### Community & Events\n\n### More from the FT Group\n\n## Top sections\n\n## FT recommends",
+                "score": 0.0998121
+              }
+            ]
+          }
+        },
+        {
+          "tool": "social_search",
+          "args": {
+            "limit": 10,
+            "query": "AI",
+            "search_type": "Latest"
+          },
+          "result": {
+            "tool": "search_tweets",
+            "error": "HTTPError",
+            "message": "403 Client Error: Forbidden for url: https://twitter-feed-timeline-api.p.rapidapi.com/search.php?query=AI&search_type=Latest"
+          }
+        }
+      ]
+    },
+    {
+      "id": "R14_out_of_scope_coding",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": false,
+      "metadata": {
+        "skill": "out_of_scope_coding",
+        "difficulty": "easy",
+        "what_it_tests": "Câu coding ngoài phạm vi research/news → KHÔNG gọi tool."
+      },
+      "input": "Viết giúp mình một hàm Python tính Fibonacci bằng recursion.",
+      "expect": {
+        "no_tool": true,
+        "behavior": "refuse"
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "out_of_scope",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RuntimeError: Hết hạn mức theo NGÀY của provider, chờ không giải quyết được. Gốc: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'metadata': {'headers': {'X-RateLimit-Limit': '50', 'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': '1785369600000'}, 'limit_source': 'openrouter_free_tier_daily', 'remedy_hint': 'Wait for the daily reset (see X-RateLimit-Reset), or purchase credits to raise your free-model daily limit.', 'provider_name': None}}, 'user_id': 'user_3HADh2FIUUyop8cmk3UAFjzLNym'}"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "M01_clarify_then_fill",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_clarify_fill",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: carry limit=5 từ lượt 1 + map tên Elon Musk thành handle elonmusk từ lượt 2."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tóm tắt 5 tweet mới nhất giúp mình"
+        },
+        {
+          "role": "user",
+          "content": "Của Elon Musk nhé"
+        },
+        {
+          "role": "user",
+          "content": "Giữ đúng 5 tweet, đừng đổi số lượng"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "elonmusk",
+              "limit": 5
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "missing_info",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RuntimeError: Hết hạn mức theo NGÀY của provider, chờ không giải quyết được. Gốc: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'metadata': {'headers': {'X-RateLimit-Limit': '50', 'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': '1785369600000'}, 'limit_source': 'openrouter_free_tier_daily', 'remedy_hint': 'Wait for the daily reset (see X-RateLimit-Reset), or purchase credits to raise your free-model daily limit.', 'provider_name': None}}, 'user_id': 'user_3HADh2FIUUyop8cmk3UAFjzLNym'}"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "M02_carryover_timeframe",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_carryover",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: chỉ xử lý latest turn, carry timeframe=day và topic=news, query robotics."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tin AI hôm nay có gì?"
+        },
+        {
+          "role": "user",
+          "content": "Còn về robotics thì sao?"
+        },
+        {
+          "role": "user",
+          "content": "Chỉ tìm robotics thôi, vẫn là tin hôm nay"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "robotics",
+              "topic": "news",
+              "timeframe": "day"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RuntimeError: Hết hạn mức theo NGÀY của provider, chờ không giải quyết được. Gốc: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'metadata': {'headers': {'X-RateLimit-Limit': '50', 'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': '1785369600000'}, 'limit_source': 'openrouter_free_tier_daily', 'remedy_hint': 'Wait for the daily reset (see X-RateLimit-Reset), or purchase credits to raise your free-model daily limit.', 'provider_name': None}}, 'user_id': 'user_3HADh2FIUUyop8cmk3UAFjzLNym'}"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "M03_correction_handle",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_correction",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: map tên thường, sửa Sam Altman→Andrej Karpathy, dùng handle karpathy và limit=3."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tweet mới nhất của Sam Altman"
+        },
+        {
+          "role": "user",
+          "content": "À nhầm, của Andrej Karpathy"
+        },
+        {
+          "role": "user",
+          "content": "Lấy 3 tweet mới nhất nhé"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "karpathy",
+              "limit": 3
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RuntimeError: Hết hạn mức theo NGÀY của provider, chờ không giải quyết được. Gốc: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'metadata': {'headers': {'X-RateLimit-Limit': '50', 'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': '1785369600000'}, 'limit_source': 'openrouter_free_tier_daily', 'remedy_hint': 'Wait for the daily reset (see X-RateLimit-Reset), or purchase credits to raise your free-model daily limit.', 'provider_name': None}}, 'user_id': 'user_3HADh2FIUUyop8cmk3UAFjzLNym'}"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "M04_clarify_then_url",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_clarify_url",
+        "difficulty": "medium",
+        "what_it_tests": "3 turns: sau khi được cung cấp URL, latest turn xác nhận chỉ đọc link đó → read_url đúng url."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Tóm tắt bài này hộ mình"
+        },
+        {
+          "role": "user",
+          "content": "https://anthropic.com/news/claude"
+        },
+        {
+          "role": "user",
+          "content": "Chỉ đọc đúng link đó thôi"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "fetch",
+            "args": {
+              "url": "https://anthropic.com/news/claude"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "missing_info",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RuntimeError: Hết hạn mức theo NGÀY của provider, chờ không giải quyết được. Gốc: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'metadata': {'headers': {'X-RateLimit-Limit': '50', 'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': '1785369600000'}, 'limit_source': 'openrouter_free_tier_daily', 'remedy_hint': 'Wait for the daily reset (see X-RateLimit-Reset), or purchase credits to raise your free-model daily limit.', 'provider_name': None}}, 'user_id': 'user_3HADh2FIUUyop8cmk3UAFjzLNym'}"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "M05_correction_limit",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_arg_correction",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: map tên Elon Musk, carry handle elonmusk, sửa limit 10→3."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Lấy 10 tweet mới nhất của Elon Musk"
+        },
+        {
+          "role": "user",
+          "content": "Cho mình 3 thôi"
+        },
+        {
+          "role": "user",
+          "content": "Vẫn của Elon Musk nhé"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "timeline",
+            "args": {
+              "screenname": "elonmusk",
+              "limit": 3
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_arg_value",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RuntimeError: Hết hạn mức theo NGÀY của provider, chờ không giải quyết được. Gốc: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'metadata': {'headers': {'X-RateLimit-Limit': '50', 'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': '1785369600000'}, 'limit_source': 'openrouter_free_tier_daily', 'remedy_hint': 'Wait for the daily reset (see X-RateLimit-Reset), or purchase credits to raise your free-model daily limit.', 'provider_name': None}}, 'user_id': 'user_3HADh2FIUUyop8cmk3UAFjzLNym'}"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    },
+    {
+      "id": "M06_switch_tool",
+      "phase": "B",
+      "suite": "base",
+      "case_suite": "base",
+      "is_multiturn": true,
+      "metadata": {
+        "skill": "multiturn_switch_tool",
+        "difficulty": "hard",
+        "what_it_tests": "3 turns: explicitly bỏ Twitter, chuyển sang web_search news, giữ chủ đề OpenAI."
+      },
+      "input": [
+        {
+          "role": "user",
+          "content": "Mọi người nói gì về OpenAI trên Twitter?"
+        },
+        {
+          "role": "user",
+          "content": "Bỏ Twitter, chuyển sang tìm trên web tin tức đi"
+        },
+        {
+          "role": "user",
+          "content": "Giữ chủ đề OpenAI"
+        }
+      ],
+      "expect": {
+        "tool_calls": [
+          {
+            "name": "lookup",
+            "args": {
+              "query": "OpenAI",
+              "topic": "news"
+            }
+          }
+        ]
+      },
+      "result": {
+        "passed": false,
+        "failure_type": "provider_error",
+        "case_failure_type": "wrong_tool",
+        "observed_mismatch": "provider_error",
+        "failures": [
+          "RuntimeError: Hết hạn mức theo NGÀY của provider, chờ không giải quyết được. Gốc: Error code: 429 - {'error': {'message': 'Rate limit exceeded: free-models-per-day. Add 10 credits to unlock 1000 free model requests per day', 'code': 429, 'metadata': {'headers': {'X-RateLimit-Limit': '50', 'X-RateLimit-Remaining': '0', 'X-RateLimit-Reset': '1785369600000'}, 'limit_source': 'openrouter_free_tier_daily', 'remedy_hint': 'Wait for the daily reset (see X-RateLimit-Reset), or purchase credits to raise your free-model daily limit.', 'provider_name': None}}, 'user_id': 'user_3HADh2FIUUyop8cmk3UAFjzLNym'}"
+        ],
+        "actual_tool_calls": [],
+        "actual_text": null,
+        "routing_correct": false,
+        "args_correct": false
+      },
+      "tool_results": []
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import yaml
 # Folder names are intentionally vague to match the tool names students see.
 # The imported function names are the underlying implementations (unchanged).
 from .clarify.tool import ask_user
+from .dedupe.tool import dedupe_items
 from .papers.tool import arxiv_search
 from .paper_text.tool import get_arxiv_paper_text
 from .timeline.tool import get_user_tweets
@@ -35,6 +36,9 @@ TOOL_FUNCTIONS = {
     "policy": search_company_policy,
     "papers": arxiv_search,
     "paper_text": get_arxiv_paper_text,
+    # Tool mới do nhóm A6 viết. Declaration trong artifacts/tools.yaml được thêm ở
+    # v2 — v1 cố ý giữ tools.yaml nguyên vẹn để đo riêng tác động của system prompt.
+    "dedupe": dedupe_items,
 }
 
 
